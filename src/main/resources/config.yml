@@ -1,0 +1,9 @@
+contextPath: '/'
+port: 8080
+defaultContentType: 'text/html'
+defaultCharacterEncoding: 'utf-8'
+enableCorsForOrigin: 'localhost:8080'
+enableRouteOverview: '/routes'
+enableDynamicGzip: true
+enableStaticFiles: '/'
+maxBodyForRequestCache: 1024
