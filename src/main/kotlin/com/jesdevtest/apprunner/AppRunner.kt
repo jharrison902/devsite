@@ -1,7 +1,18 @@
 package com.jesdevtest.apprunner
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.jesdevtest.pages.PageConfig
+import com.jesdevtest.pages.PagesConfig
+import com.jesdevtest.pages.ServiceConfig
 import io.javalin.Context
 import io.javalin.Javalin
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.io.FileInputStream
+import java.nio.file.Files
+import java.nio.file.Paths
 
 /**
  * Enumeration for Request Types
@@ -14,14 +25,62 @@ enum class RequestType {GET, POST, PUT, DELETE}
  * @property app The Javalin App being passed in for management
  *
  */
-class AppRunner (private val app: Javalin) {
+class AppRunner (private val app: Javalin, private var pagesConfig: PagesConfig = PagesConfig(ArrayList(), ArrayList())) {
+
+    private val Logger = LoggerFactory.getLogger(this.javaClass)
 
     /*
     Register the basic handlers for the app...
      */
     init {
+        Logger.info("Starting up App Runner...")
+        loadPages()
+    }
+
+    private fun loadPages() {
+        val mapper = ObjectMapper(YAMLFactory())
+        mapper.registerModule(KotlinModule())
+        Logger.debug("Loading pages configuration")
+        val pagesConfigFile = ClassLoader.getSystemResource("pages.yml").path.substring(1)
+        pagesConfig = Files.newBufferedReader(Paths.get(pagesConfigFile)).use {
+            mapper.readValue(it, PagesConfig::class.java)
+        }
+        Logger.info("%d pages loaded!".format(pagesConfig.pages.size))
+        Logger.info("%d services loaded!".format(pagesConfig.services.size))
+        Logger.info("Initializing pages...")
+        initPages()
+        Logger.info("Initializing services")
+        initServices()
+    }
+
+    private fun initPages() {
+        pagesConfig.pages.forEach { page -> initPage(page) }
+    }
+
+    private fun initServices() {
+        pagesConfig.services.forEach { service -> initService(service) }
+    }
+
+    /**
+     * Initial a page as a GET request for that path.
+     */
+    //TODO: Add template engine features?
+    private fun initPage(page: PageConfig) {
+        val path = page.path
+        //check if this page config has a file to load from
+        if (page.fileName.isNotBlank()) {
+            //grab a handler that'll load this file.
+            registerGetHandler(path, {ctx: Context -> ctx.result(FileInputStream(page.fileName)) })
+            return
+        }
+        //return the pageSrc
+        registerGetHandler(path, {ctx: Context -> ctx.result(page.pageSrc) })
+    }
+
+    private fun initService(service: ServiceConfig) {
 
     }
+
     /**
      * Start the Application Server
      * @return this

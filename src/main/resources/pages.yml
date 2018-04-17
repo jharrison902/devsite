@@ -1,0 +1,8 @@
+pages:
+  - path: '/'
+    fileName: ''
+    pageSrc: 'Hello, World!'
+  - path: '/test.htm'
+    fileName: ''
+    pageSrc: 'Eventually, a file will live here'
+services: []

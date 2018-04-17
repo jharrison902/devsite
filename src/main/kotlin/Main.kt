@@ -44,8 +44,7 @@ fun main(args: Array<String>) {
     if (conf.enableDynamicGzip) {
         app.enableDynamicGzip()
     }
-    val appRunner = AppRunner(app).start()
-    appRunner.registerGetHandler("/", {ctx -> ctx.result("Hello, World!")})
+    AppRunner(app).start()
 
 
 }
